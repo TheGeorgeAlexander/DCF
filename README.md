@@ -1,1 +1,1 @@
-# DCF
+# Dynamic Configuration Format
