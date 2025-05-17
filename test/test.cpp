@@ -1,8 +1,10 @@
+#include "dcf.hpp"
 #include <iostream>
 
 
 
 int main() {
-    std::cout << "Hello World!" << std::endl;
+    DCF::parseFile("test/test.dcf");
+
     return 0;
 }

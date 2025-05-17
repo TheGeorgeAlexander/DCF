@@ -1,6 +1,6 @@
 # Compiler and compiler flags
 GCC = g++
-FLAGS = -std=c++11 -Wall -Wextra -Wpedantic -Werror -O3 -Iinclude
+FLAGS = -std=c++17 -Wall -Wextra -Wpedantic -Werror -O3 -Iinclude
 
 # Source and build directories
 SRC = test
@@ -21,8 +21,13 @@ $(TARGET): $(OBJ_FILES)
 	$(GCC) $(FLAGS) -o $@ $^
 
 $(BUILD)/%.o: $(SRC)/%.cpp
-	@mkdir -p $(dir $@)
+	mkdir -p $(dir $@)
 	$(GCC) $(FLAGS) -c -o $@ $<
+
+
+.PHONY: rebuild
+rebuild:
+	@$(MAKE) clean $(TARGET)
 
 
 .PHONY: clean

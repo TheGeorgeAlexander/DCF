@@ -1,0 +1,22 @@
+{
+    string0: "this is a string",
+    string1: 'this as well',
+
+    // this is a comment
+
+    /*  this is a multiline comment
+        and i wonder if it works
+
+        :D
+    */
+
+    int: 12345,
+    dec: 3.14159265358979323846,
+    hex: 0xff0123AB,
+    bin: 0b101010101,
+    
+    boolean0: true,
+    boolean1: false,
+
+    bracket_test: [ "hi", "mlem" ]
+}
