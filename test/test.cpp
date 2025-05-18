@@ -4,7 +4,7 @@
 
 
 int main() {
-    DCF::parseFile("test/test.dcf");
+    dcf::DCF::parseFile("test/test.dcf");
 
     return 0;
 }
