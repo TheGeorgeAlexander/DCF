@@ -142,7 +142,7 @@ private:
 
                     tokens.emplace_back(type, matchStr, line, column);
 
-                    if (type == Token::Type::WHITESPACE) {
+                    if (type == Token::Type::WHITESPACE || type == Token::Type::COMMENT) {
                         for (char c : matchStr) {
                             if (c == '\n') {
                                 line++;
