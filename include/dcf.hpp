@@ -52,18 +52,21 @@ namespace dcf {
             const enum class Type {
                 WHITESPACE,
                 COMMENT,
-                BOOLEAN,
-                KEY,
-                COLON,
                 STRING,
-                NUM_INT,
+                BOOLEAN,
                 NUM_DECIMAL,
                 NUM_HEX,
                 NUM_BINARY,
+                NUM_INT,
+                KEY,
+                FUNCTION,
+                L_PAREN,
+                R_PAREN,
                 L_BRACE,
                 R_BRACE,
                 L_BRACKET,
                 R_BRACKET,
+                COLON,
                 COMMA
             } type;
             const std::string value;
@@ -72,25 +75,28 @@ namespace dcf {
 
             Token(Type type, const std::string &value, size_t line, size_t column)
                 : type(type), value(value), line(line), column(column) {}
-        };
+        }; // class Token
 
 
         static std::string typeToString(Token::Type type) {
             switch (type) {
                 case Token::Type::WHITESPACE:   return "WHITESPACE";
                 case Token::Type::COMMENT:      return "COMMENT";
-                case Token::Type::NUM_INT:      return "NUM_INT";
+                case Token::Type::STRING:       return "STRING";
+                case Token::Type::BOOLEAN:      return "BOOLEAN";
                 case Token::Type::NUM_DECIMAL:  return "NUM_DECIMAL";
                 case Token::Type::NUM_HEX:      return "NUM_HEX";
                 case Token::Type::NUM_BINARY:   return "NUM_BINARY";
+                case Token::Type::NUM_INT:      return "NUM_INT";
+                case Token::Type::KEY:          return "KEY";
+                case Token::Type::FUNCTION:     return "FUNCTION";
+                case Token::Type::L_PAREN:      return "L_PAREN";
+                case Token::Type::R_PAREN:      return "R_PAREN";
                 case Token::Type::L_BRACE:      return "L_BRACE";
                 case Token::Type::R_BRACE:      return "R_BRACE";
                 case Token::Type::L_BRACKET:    return "L_BRACKET";
                 case Token::Type::R_BRACKET:    return "R_BRACKET";
-                case Token::Type::STRING:       return "STRING";
-                case Token::Type::KEY:          return "KEY";
                 case Token::Type::COLON:        return "COLON";
-                case Token::Type::BOOLEAN:      return "BOOLEAN";
                 case Token::Type::COMMA:        return "COMMA";
                 default:                        return "__UNKNOWN__";
             }
@@ -104,7 +110,7 @@ namespace dcf {
 
             const std::regex regex;
             const Token::Type type;
-        };
+        }; // class TokenDefinition
 
 
         static std::vector<Token> tokenize(const std::string &text) {
@@ -118,6 +124,9 @@ namespace dcf {
                 {R"(0b[01]+)",                  Token::Type::NUM_BINARY},
                 {R"(\d+)",                      Token::Type::NUM_INT},
                 {R"([a-zA-Z_]\w*)",             Token::Type::KEY},
+                {R"(@[a-z]+)",                  Token::Type::FUNCTION},
+                {R"(\()",                       Token::Type::L_PAREN},
+                {R"(\))",                       Token::Type::R_PAREN},
                 {R"(\{)",                       Token::Type::L_BRACE},
                 {R"(})",                        Token::Type::R_BRACE},
                 {R"(\[)",                       Token::Type::L_BRACKET},

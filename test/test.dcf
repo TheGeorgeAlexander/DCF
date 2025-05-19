@@ -18,5 +18,8 @@
     boolean0: true,
     boolean1: false,
 
-    bracket_test: [ "hi", "mlem" ]
+    bracket_test: [ "hi", "mlem" ],
+
+    function0: @this(string0),
+    function1: @concat("Number: ", @this(int))
 }
