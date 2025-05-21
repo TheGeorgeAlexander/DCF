@@ -106,7 +106,7 @@ namespace dcf {
         class TokenDefinition {
         public:
             TokenDefinition(const std::string &pattern, Token::Type type)
-                : regex("^(" + pattern + ")"), type(type) {}
+                : regex("^(" + pattern + ")", std::regex_constants::icase), type(type) {}
 
             const std::regex regex;
             const Token::Type type;
@@ -120,10 +120,10 @@ namespace dcf {
                 {R"("[^"\n]*"|'[^'\n]*')",      Token::Type::STRING},
                 {R"(true|false)",               Token::Type::BOOLEAN},
                 {R"(\d*\.\d+|\d+\.\d*)",        Token::Type::NUM_DECIMAL},
-                {R"(0x[\da-fA-F]+)",            Token::Type::NUM_HEX},
+                {R"(0x[\da-f]+)",               Token::Type::NUM_HEX},
                 {R"(0b[01]+)",                  Token::Type::NUM_BINARY},
                 {R"(\d+)",                      Token::Type::NUM_INT},
-                {R"([a-zA-Z_]\w*)",             Token::Type::KEY},
+                {R"([a-z]([\w-]*[a-z0-9])?)",   Token::Type::KEY},
                 {R"(@[a-z]+)",                  Token::Type::FUNCTION},
                 {R"(\()",                       Token::Type::L_PAREN},
                 {R"(\))",                       Token::Type::R_PAREN},
@@ -150,7 +150,9 @@ namespace dcf {
                         const std::string matchStr = match.str(0);
                         const Token::Type type = def.type;
 
-                        tokens.emplace_back(type, matchStr, line, column);
+                        if(type != Token::Type::WHITESPACE) {
+                            tokens.emplace_back(type, matchStr, line, column);
+                        }
 
                         if (type == Token::Type::WHITESPACE || type == Token::Type::COMMENT) {
                             for (char c : matchStr) {
