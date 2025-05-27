@@ -1,5 +1,5 @@
 # Compiler and compiler flags
-GCC = g++
+CXX = clang++
 FLAGS = -std=c++17 -Wall -Wextra -Wpedantic -Werror -O3 -Iinclude
 
 # Source and build directories
@@ -18,11 +18,11 @@ TARGET = dcf-test
 
 
 $(TARGET): $(OBJ_FILES)
-	$(GCC) $(FLAGS) -o $@ $^
+	$(CXX) $(FLAGS) -o $@ $^
 
 $(BUILD)/%.o: $(SRC)/%.cpp
 	mkdir -p $(dir $@)
-	$(GCC) $(FLAGS) -c -o $@ $<
+	$(CXX) $(FLAGS) -c -o $@ $<
 
 
 .PHONY: rebuild
