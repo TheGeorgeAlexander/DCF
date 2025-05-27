@@ -34,7 +34,8 @@ namespace dcf {
 
 
         static void parse(const std::string &text) {
-            std::vector<Token> tokens = tokenize(text);
+            std::vector<Token> tokens;
+            tokenize(text, tokens);
 
             for(const Token &token : tokens) {
                 std::cout << std::endl << typeToString(token.type) << std::endl;
@@ -70,8 +71,8 @@ namespace dcf {
                 COMMA
             } type;
             const std::string value;
-            size_t line;
-            size_t column;
+            const size_t line;
+            const size_t column;
 
             Token(Type type, const std::string &value, size_t line, size_t column)
                 : type(type), value(value), line(line), column(column) {}
@@ -113,7 +114,7 @@ namespace dcf {
         }; // class TokenDefinition
 
 
-        static std::vector<Token> tokenize(const std::string &text) {
+        static void tokenize(const std::string &text, std::vector<Token> &tokens) {
             static const std::vector<TokenDefinition> TOKEN_DEFINITIONS = {
                 {R"(\s+)",                      Token::Type::WHITESPACE},
                 {R"(//[^\n]*|/\*(.|\n)*?\*/)",  Token::Type::COMMENT},
@@ -135,7 +136,6 @@ namespace dcf {
                 {R"(,)",                        Token::Type::COMMA}
             };
 
-            std::vector<Token> tokens;
             std::size_t line = 1, column = 1, pos = 0;
             std::string_view input = text;
 
@@ -154,6 +154,7 @@ namespace dcf {
                             tokens.emplace_back(type, matchStr, line, column);
                         }
 
+                        // Whitespace or comment might span multiple lines
                         if (type == Token::Type::WHITESPACE || type == Token::Type::COMMENT) {
                             for (char c : matchStr) {
                                 if (c == '\n') {
@@ -163,6 +164,8 @@ namespace dcf {
                                     column++;
                                 }
                             }
+
+                        // the rest doesn't
                         } else {
                             column += match.length();
                         }
@@ -176,8 +179,6 @@ namespace dcf {
                     throw std::invalid_argument("Unknown token at line " + std::to_string(line) + ", column " + std::to_string(column));
                 }
             }
-
-            return tokens;
         }
     }; // class DCF
 } // namespace dcf
