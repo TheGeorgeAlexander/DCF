@@ -21,5 +21,9 @@
     bracket_test: [ "hi", "mlem" ],
 
     function0: @this(string0),
-    function1: @concat("Number: ", @this(int))
+    function1: @concat("Number: ", @this(int)),
+
+    nested: {
+        hey: "Hello World!"
+    }
 }
