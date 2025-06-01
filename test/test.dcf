@@ -10,13 +10,13 @@
         :D
     */
 
-    int: 12345,
+    int: -12345,
     dec: 3.14159265358979323846,
     hex: 0xff0123AB,
-    bin: 0b101010101,
+    bin: -0b101010101,
     
     boolean0: true,
-    boolean1: false,
+    boolean1: fAlSe,
 
     bracket_test: [ "hi", "mlem" ],
 

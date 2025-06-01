@@ -14,10 +14,10 @@ PAIR_LIST       --> PAIR comma PAIR_LIST
                     | PAIR
 
 
-PAIR            --> COMMENT_LIST key colon VALUE
+PAIR            --> PAIR_HEADER key colon VALUE
 
 
-COMMENT_LIST    --> comment COMMENT_LIST
+PAIR_HEADER     --> comment PAIR_HEADER
                     | *
 
 

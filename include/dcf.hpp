@@ -107,35 +107,36 @@ namespace dcf {
         class TokenDefinition {
         public:
             TokenDefinition(const std::string &pattern, Token::Type type)
-                : regex("^(" + pattern + ")", std::regex_constants::icase), type(type) {}
+                : regex("^(?:" + pattern + ")", std::regex_constants::icase), type(type) {}
 
             const std::regex regex;
             const Token::Type type;
         }; // class TokenDefinition
 
 
-        static void tokenize(const std::string &text, std::vector<Token> &tokens) {
-            static const std::vector<TokenDefinition> TOKEN_DEFINITIONS = {
-                {R"(\s+)",                      Token::Type::WHITESPACE},
-                {R"(//[^\n]*|/\*(.|\n)*?\*/)",  Token::Type::COMMENT},
-                {R"("[^"\n]*"|'[^'\n]*')",      Token::Type::STRING},
-                {R"(true|false)",               Token::Type::BOOLEAN},
-                {R"(\d*\.\d+|\d+\.\d*)",        Token::Type::NUM_DECIMAL},
-                {R"(0x[\da-f]+)",               Token::Type::NUM_HEX},
-                {R"(0b[01]+)",                  Token::Type::NUM_BINARY},
-                {R"(\d+)",                      Token::Type::NUM_INT},
-                {R"([a-z]([\w-]*[a-z0-9])?)",   Token::Type::KEY},
-                {R"(@[a-z]+)",                  Token::Type::FUNCTION},
-                {R"(\()",                       Token::Type::L_PAREN},
-                {R"(\))",                       Token::Type::R_PAREN},
-                {R"(\{)",                       Token::Type::L_BRACE},
-                {R"(})",                        Token::Type::R_BRACE},
-                {R"(\[)",                       Token::Type::L_BRACKET},
-                {R"(])",                        Token::Type::R_BRACKET},
-                {R"(:)",                        Token::Type::COLON},
-                {R"(,)",                        Token::Type::COMMA}
-            };
+        inline static const TokenDefinition TOKEN_DEFINITIONS[] = {
+            {R"(\s+)",                      Token::Type::WHITESPACE},
+            {R"(//[^\n]*|/\*(?:.|\n)*?\*/)",Token::Type::COMMENT},
+            {R"("[^"\n]*"|'[^'\n]*')",      Token::Type::STRING},
+            {R"(true|false)",               Token::Type::BOOLEAN},
+            {R"(-?(?:\d*\.\d+|\d+\.\d*))",  Token::Type::NUM_DECIMAL},
+            {R"(-?0x[\da-f]+)",             Token::Type::NUM_HEX},
+            {R"(-?0b[01]+)",                Token::Type::NUM_BINARY},
+            {R"(-?\d+)",                    Token::Type::NUM_INT},
+            {R"([a-z](?:[\w-]*[a-z0-9])?)", Token::Type::KEY},
+            {R"(@[a-z]+)",                  Token::Type::FUNCTION},
+            {R"(\()",                       Token::Type::L_PAREN},
+            {R"(\))",                       Token::Type::R_PAREN},
+            {R"(\{)",                       Token::Type::L_BRACE},
+            {R"(})",                        Token::Type::R_BRACE},
+            {R"(\[)",                       Token::Type::L_BRACKET},
+            {R"(])",                        Token::Type::R_BRACKET},
+            {R"(:)",                        Token::Type::COLON},
+            {R"(,)",                        Token::Type::COMMA}
+        };
 
+
+        static void tokenize(const std::string &text, std::vector<Token> &tokens) {
             std::size_t line = 1, column = 1, pos = 0;
             std::string_view input = text;
 
