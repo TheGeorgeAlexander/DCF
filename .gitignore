@@ -1,3 +1,4 @@
 .vscode
 build
 dcf-test
+callgrind*

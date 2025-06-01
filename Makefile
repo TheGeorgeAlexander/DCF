@@ -1,6 +1,8 @@
 # Compiler and compiler flags
 CXX = clang++
-FLAGS = -std=c++17 -Wall -Wextra -Wpedantic -Werror -O3 -Iinclude
+BASE_FLAGS = -std=c++17 -Wall -Wextra -Wpedantic -Werror -Iinclude
+OPT_FLAGS = -O3
+FLAGS = $(BASE_FLAGS) $(OPT_FLAGS)
 
 # Source and build directories
 SRC = test
@@ -34,3 +36,8 @@ rebuild:
 clean:
 	rm -rf $(BUILD)
 	rm -f $(TARGET)
+
+
+.PHONY: debug
+debug:
+	@$(MAKE) OPT_FLAGS="-O0 -g" rebuild
