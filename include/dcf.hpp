@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include <regex>
 #include <stdexcept>
@@ -17,7 +18,7 @@ namespace dcf {
     class DCF {
     public:
         static void parseFile(const std::string &path) {
-            std::fstream fileStream(path);
+            std::ifstream fileStream(path);
             if(!fileStream.is_open()) {
                 throw std::runtime_error("Unable to open file");
             }
@@ -37,12 +38,13 @@ namespace dcf {
             std::vector<Token> tokens;
             tokenize(text, tokens);
 
-            for(const Token &token : tokens) {
-                std::cout << std::endl << typeToString(token.type) << std::endl;
-                std::cout << "||" << token.value << "||\t" << std::endl;
+            if(tokens.size() == 0) {
+                throw std::runtime_error("Expected content in input, got nothing");
             }
 
-            // TODO: parse the tokens
+            tokens.emplace_back(Token::Type::END_OF_INPUT, "", tokens.back().line, tokens.back().column + tokens.back().value.length());
+
+            Parser(tokens).parse();
         }
 
 
@@ -68,7 +70,8 @@ namespace dcf {
                 L_BRACKET,
                 R_BRACKET,
                 COLON,
-                COMMA
+                COMMA,
+                END_OF_INPUT
             } type;
             const std::string value;
             const size_t line;
@@ -76,30 +79,30 @@ namespace dcf {
 
             Token(Type type, const std::string &value, size_t line, size_t column)
                 : type(type), value(value), line(line), column(column) {}
-        }; // class Token
+        }; // private class Token
 
 
         static std::string typeToString(Token::Type type) {
             switch (type) {
-                case Token::Type::WHITESPACE:   return "WHITESPACE";
-                case Token::Type::COMMENT:      return "COMMENT";
-                case Token::Type::STRING:       return "STRING";
-                case Token::Type::BOOLEAN:      return "BOOLEAN";
-                case Token::Type::NUM_DECIMAL:  return "NUM_DECIMAL";
-                case Token::Type::NUM_HEX:      return "NUM_HEX";
-                case Token::Type::NUM_BINARY:   return "NUM_BINARY";
-                case Token::Type::NUM_INT:      return "NUM_INT";
-                case Token::Type::KEY:          return "KEY";
-                case Token::Type::FUNCTION:     return "FUNCTION";
-                case Token::Type::L_PAREN:      return "L_PAREN";
-                case Token::Type::R_PAREN:      return "R_PAREN";
-                case Token::Type::L_BRACE:      return "L_BRACE";
-                case Token::Type::R_BRACE:      return "R_BRACE";
-                case Token::Type::L_BRACKET:    return "L_BRACKET";
-                case Token::Type::R_BRACKET:    return "R_BRACKET";
-                case Token::Type::COLON:        return "COLON";
-                case Token::Type::COMMA:        return "COMMA";
-                default:                        return "__UNKNOWN__";
+                case Token::Type::WHITESPACE:   return "whitespace";
+                case Token::Type::COMMENT:      return "comment";
+                case Token::Type::STRING:       return "string";
+                case Token::Type::BOOLEAN:      return "boolean";
+                case Token::Type::NUM_DECIMAL:  return "decimal number";
+                case Token::Type::NUM_HEX:      return "hexadecimal number";
+                case Token::Type::NUM_BINARY:   return "binary number";
+                case Token::Type::NUM_INT:      return "integer number";
+                case Token::Type::KEY:          return "key";
+                case Token::Type::FUNCTION:     return "function";
+                case Token::Type::L_PAREN:      return "opening parenthesis";
+                case Token::Type::R_PAREN:      return "closing parenthesis";
+                case Token::Type::L_BRACE:      return "opening brace";
+                case Token::Type::R_BRACE:      return "closing brace";
+                case Token::Type::L_BRACKET:    return "opening bracket";
+                case Token::Type::R_BRACKET:    return "closing bracket";
+                case Token::Type::COLON:        return "colon";
+                case Token::Type::COMMA:        return "comma";
+                case Token::Type::END_OF_INPUT: return "end of input";
             }
         }
 
@@ -111,7 +114,7 @@ namespace dcf {
 
             const std::regex regex;
             const Token::Type type;
-        }; // class TokenDefinition
+        }; // private class TokenDefinition
 
 
         inline static const TokenDefinition TOKEN_DEFINITIONS[] = {
@@ -177,10 +180,210 @@ namespace dcf {
                 }
 
                 if (!matched) {
-                    throw std::invalid_argument("Unknown token at line " + std::to_string(line) + ", column " + std::to_string(column));
+                    throw std::runtime_error("Unknown token at line " + std::to_string(line) + ", column " + std::to_string(column));
                 }
             }
         }
+
+
+        class Parser {
+        public:
+            Parser(const std::vector<Token> &tokens)
+                : tokens(tokens) { }
+
+
+            void parse() {
+                parseSection();
+                matchNextNoComments(Token::Type::END_OF_INPUT);
+            }
+
+
+
+        private:
+            const std::vector<Token> &tokens;
+
+            size_t index = -1;
+
+
+            [[noreturn]] void error(const std::string &expected) const {
+                Token curr = tokens[index];
+                std::stringstream errorText;
+                errorText   << "Expected " << expected 
+                            << ", got " << typeToString(curr.type) 
+                            << ", at line " << curr.line << ", column " << curr.column;
+                throw std::runtime_error(errorText.str());
+            }
+
+
+            void matchNextNoComments(const Token::Type expected) {
+                Token curr = nextNoComments();
+                if(curr.type != expected) {
+                    error(typeToString(expected));
+                }
+            }
+
+
+            bool nextWillMatch(const Token::Type expected) {
+                return peekNext().type == expected;
+            }
+
+
+            bool nextWillMatchNoComments(const Token::Type expected) {
+                return peekNextNoComments().type == expected;
+            }
+
+            
+            bool isAtEnd() const {
+                return tokens[index].type == Token::Type::END_OF_INPUT;
+            }
+
+
+            Token next() {
+                if(isAtEnd()) {
+                    return tokens[index];
+                }
+                index++;
+                return tokens[index];
+            }
+
+
+            Token nextNoComments() {
+                if(isAtEnd()) {
+                    return tokens[index];
+                }
+                do {
+                    index++;
+                } while(tokens[index].type == Token::Type::COMMENT);
+                return tokens[index];
+            }
+            
+            
+            Token peekNext() const {
+                if(isAtEnd()) {
+                    return tokens[index];
+                }
+                return tokens[index + 1];
+            }
+
+
+            Token peekNextNoComments() const {
+                if(isAtEnd()) {
+                    return tokens[index];
+                }
+                size_t nextIndex = index;
+                do {
+                    nextIndex++;
+                } while(tokens[nextIndex].type == Token::Type::COMMENT);
+                return tokens[nextIndex];
+            }
+
+
+            void parseSection() {
+                matchNextNoComments(Token::Type::L_BRACE);
+                parsePairList();
+                matchNextNoComments(Token::Type::R_BRACE);
+            }
+
+
+            void parsePairList() {
+                if(!nextWillMatchNoComments(Token::Type::KEY)) {
+                    return;
+                }
+                parsePair();
+                if(nextWillMatchNoComments(Token::Type::COMMA)) {
+                    nextNoComments();
+                    parsePairList();
+                }
+            }
+
+
+            void parsePair() {
+                parsePairHeader();
+                matchNextNoComments(Token::Type::KEY);
+                matchNextNoComments(Token::Type::COLON);
+                parseValue();
+            }
+
+
+            void parsePairHeader() {
+                while(nextWillMatch(Token::Type::COMMENT)) {
+                    next();
+                }
+            }
+
+
+            void parseValue() {
+                switch (peekNextNoComments().type) {
+                    case Token::Type::STRING:
+                    case Token::Type::BOOLEAN:
+                        nextNoComments();
+                        break;
+
+                    case Token::Type::NUM_INT:
+                    case Token::Type::NUM_DECIMAL:
+                    case Token::Type::NUM_HEX:
+                    case Token::Type::NUM_BINARY:
+                        nextNoComments();
+                        break;
+
+                    case Token::Type::L_BRACKET:
+                        parseArray();
+                        break;
+
+                    case Token::Type::L_BRACE:
+                        parseSection();
+                        break;
+
+                    case Token::Type::FUNCTION:
+                        parseFunction();
+                        break;
+                    
+                    default:
+                        nextNoComments();
+                        error("value");
+                        break;
+                }
+            }
+
+
+            void parseArray() {
+                matchNextNoComments(Token::Type::L_BRACKET);
+                parseValueList();
+                matchNextNoComments(Token::Type::R_BRACKET);
+            }
+
+
+            void parseValueList() {
+                switch (peekNextNoComments().type) {
+                    case Token::Type::STRING:
+                    case Token::Type::BOOLEAN:
+                    case Token::Type::NUM_INT:
+                    case Token::Type::NUM_DECIMAL:
+                    case Token::Type::NUM_HEX:
+                    case Token::Type::NUM_BINARY:
+                    case Token::Type::L_BRACKET:
+                    case Token::Type::L_BRACE:
+                    case Token::Type::FUNCTION:
+                        break;
+                    default:
+                        return;
+                }
+                parseValue();
+                if(nextWillMatchNoComments(Token::Type::COMMA)) {
+                    nextNoComments();
+                    parseValueList();
+                }
+            }
+
+
+            void parseFunction() {
+                matchNextNoComments(Token::Type::FUNCTION);
+                matchNextNoComments(Token::Type::L_PAREN);
+                parseValueList();
+                matchNextNoComments(Token::Type::R_PAREN);
+
+            }
+        }; // private class Parser
     }; // class DCF
 } // namespace dcf
 

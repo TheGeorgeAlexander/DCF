@@ -1,17 +1,19 @@
 // uppercase is non-terminal (production rule)
 // lowercase is terminal (token)
 
+// NOTE:    All 'comment' tokens are ignored during parsing, except when parsed as part
+//          of PAIR_HEADER. This implicit behavior is not reflected in the grammar below.
+
 
 START           --> SECTION
 
 
-SECTION          --> l_brace PAIR_LIST r_brace
-                    | l_brace PAIR_LIST comma r_brace
-                    | l_brace r_brace
+SECTION         --> l_brace PAIR_LIST r_brace
 
 
 PAIR_LIST       --> PAIR comma PAIR_LIST
                     | PAIR
+                    | *
 
 
 PAIR            --> PAIR_HEADER key colon VALUE
@@ -22,8 +24,8 @@ PAIR_HEADER     --> comment PAIR_HEADER
 
 
 VALUE           --> string
-                    | NUMBER
                     | boolean
+                    | NUMBER
                     | ARRAY
                     | SECTION
                     | FUNCTION
@@ -36,17 +38,11 @@ NUMBER          --> num_int
 
 
 ARRAY           --> l_bracket VALUE_LIST r_bracket
-                    | l_bracket VALUE_LIST comma r_bracket
-                    | l_bracket r_bracket
 
 
 VALUE_LIST      --> VALUE comma VALUE_LIST
                     | VALUE
+                    | *
 
 
-FUNCTION        --> function l_paren ARG_LIST r_paren
-                    | function l_paren r_paren
-
-
-ARG_LIST        --> VALUE comma ARG_LIST
-                    | VALUE
+FUNCTION        --> function l_paren VALUE_LIST r_paren

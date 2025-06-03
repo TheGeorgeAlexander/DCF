@@ -16,14 +16,17 @@
     bin: -0b101010101,
     
     boolean0: true,
-    boolean1: fAlSe,
+    boolean1: false,
 
-    bracket_test: [ "hi", "mlem" ],
+    bracket_test: /* secret comment */ [ "hi", "mlem" ],
+    empty: [],
 
-    function0: @this(string0),
-    function1: @concat("Number: ", @this(int)),
+    function0: @this("string0"),
+    function1: @concat("Number: ", @this("int")),
 
     nested: {
         hey: "Hello World!"
-    }
+    },
+    
+    last: "trailing comma is fine (also in arrays)",  // <--- that comma
 }
