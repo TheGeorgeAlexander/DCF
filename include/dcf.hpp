@@ -3,43 +3,59 @@
 #ifndef DCF_HPP
 #define DCF_HPP
 
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
 #include <regex>
-#include <stdexcept>
 
 
 
 
 namespace dcf {
-    class DCF {
+    class parse_error : public std::exception {
     public:
-        static void parseFile(const std::string &path) {
-            std::ifstream fileStream(path);
-            if(!fileStream.is_open()) {
-                throw std::runtime_error("Unable to open file");
-            }
+        parse_error(const std::string &message)
+            : errorMessage(message),
+            whatMessage(message + ", line " + std::to_string(linePos) + ", column " + std::to_string(columnPos)) { }
 
-            // Read the full source file
-            std::stringstream buffer;
-            buffer << fileStream.rdbuf();
-            std::string fullFile = buffer.str();
-            fileStream.close();
+        parse_error(const std::string &message, const size_t line, const size_t column)
+            : errorMessage(message),
+            linePos(line),
+            columnPos(column),
+            whatMessage(message + ", line " + std::to_string(line) + ", column " + std::to_string(column)) { }
 
-            parse(fullFile);
+
+        const char* what() const noexcept {
+            return whatMessage.c_str();
+        }
+
+        const char* message() const noexcept {
+            return errorMessage.c_str();
+        }
+
+        size_t line() const noexcept {
+            return linePos;
+        }
+
+        size_t column() const noexcept {
+            return columnPos;
         }
 
 
 
+    private:
+        const std::string errorMessage;
+        const size_t linePos = 1;
+        const size_t columnPos = 1;
+        const std::string whatMessage;
+    }; // class parse_error
+
+
+    class DCF {
+    public:
         static void parse(const std::string &text) {
             std::vector<Token> tokens;
             tokenize(text, tokens);
 
             if(tokens.size() == 0) {
-                throw std::runtime_error("Expected content in input, got nothing");
+                throw dcf::parse_error("Expected content in input but got nothing");
             }
 
             tokens.emplace_back(Token::Type::END_OF_INPUT, "", tokens.back().line, tokens.back().column + tokens.back().value.length());
@@ -94,14 +110,14 @@ namespace dcf {
                 case Token::Type::NUM_INT:      return "integer number";
                 case Token::Type::KEY:          return "key";
                 case Token::Type::FUNCTION:     return "function";
-                case Token::Type::L_PAREN:      return "opening parenthesis";
-                case Token::Type::R_PAREN:      return "closing parenthesis";
-                case Token::Type::L_BRACE:      return "opening brace";
-                case Token::Type::R_BRACE:      return "closing brace";
-                case Token::Type::L_BRACKET:    return "opening bracket";
-                case Token::Type::R_BRACKET:    return "closing bracket";
-                case Token::Type::COLON:        return "colon";
-                case Token::Type::COMMA:        return "comma";
+                case Token::Type::L_PAREN:      return "'('";
+                case Token::Type::R_PAREN:      return "')'";
+                case Token::Type::L_BRACE:      return "'{'";
+                case Token::Type::R_BRACE:      return "'}'";
+                case Token::Type::L_BRACKET:    return "'['";
+                case Token::Type::R_BRACKET:    return "']'";
+                case Token::Type::COLON:        return "':'";
+                case Token::Type::COMMA:        return "','";
                 case Token::Type::END_OF_INPUT: return "end of input";
             }
         }
@@ -180,7 +196,7 @@ namespace dcf {
                 }
 
                 if (!matched) {
-                    throw std::runtime_error("Unknown token at line " + std::to_string(line) + ", column " + std::to_string(column));
+                    throw dcf::parse_error("Unknown token", line, column);
                 }
             }
         }
@@ -207,11 +223,7 @@ namespace dcf {
 
             [[noreturn]] void error(const std::string &expected) const {
                 Token curr = tokens[index];
-                std::stringstream errorText;
-                errorText   << "Expected " << expected 
-                            << ", got " << typeToString(curr.type) 
-                            << ", at line " << curr.line << ", column " << curr.column;
-                throw std::runtime_error(errorText.str());
+                throw dcf::parse_error("Expected " + expected + " but got " + typeToString(curr.type), curr.line, curr.column);
             }
 
 
