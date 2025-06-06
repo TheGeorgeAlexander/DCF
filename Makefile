@@ -1,43 +1,21 @@
-# Compiler and compiler flags
 CXX = clang++
-BASE_FLAGS = -std=c++17 -Wall -Wextra -Wpedantic -Werror -Iinclude
-OPT_FLAGS = -O3
-FLAGS = $(BASE_FLAGS) $(OPT_FLAGS)
-
-# Source and build directories
-SRC = test
-BUILD = build
-
-# Find all source files in the source directory and subdirectories
-SRC_FILES = $(shell find $(SRC) -type f -name '*.cpp')
-
-# Create a list of object files from the source files
-OBJ_FILES = $(patsubst $(SRC)/%, $(BUILD)/%, $(SRC_FILES:.cpp=.o))
-
-# Target
+FLAGS = -std=c++17 -Wall -Wextra -Wpedantic -Werror -O3 -Iinclude
 TARGET = dcf-test
 
 
 
-$(TARGET): $(OBJ_FILES)
-	$(CXX) $(FLAGS) -o $@ $^
 
-$(BUILD)/%.o: $(SRC)/%.cpp
-	mkdir -p $(dir $@)
-	$(CXX) $(FLAGS) -c -o $@ $<
+.PHONY: test
+test:
+	$(CXX) $(FLAGS) -o $(TARGET) test/test.cpp
 
 
-.PHONY: rebuild
-rebuild:
-	@$(MAKE) clean $(TARGET)
+.PHONY: dist
+dist:
+	python3 build.py
 
 
 .PHONY: clean
 clean:
-	rm -rf $(BUILD)
+	rm -rf dist
 	rm -f $(TARGET)
-
-
-.PHONY: debug
-debug:
-	@$(MAKE) OPT_FLAGS="-O0 -g" rebuild

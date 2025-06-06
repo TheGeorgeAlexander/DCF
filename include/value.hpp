@@ -5,6 +5,7 @@
 
 
 namespace dcf {
+    class Section;
 
     enum class ValueType {
         STRING,
@@ -130,5 +131,4 @@ inline void dcf::Value::checkType(ValueType expected) const {
     }
 }
 
-#endif
-
+#endif // VALUE_HPP

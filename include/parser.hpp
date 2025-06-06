@@ -272,4 +272,4 @@ inline double dcf::internal::Parser::cleanDoubleTokenValue(const Token &token) {
     return std::stod(token.value);
 }
 
-#endif
+#endif //PARSER_HPP

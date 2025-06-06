@@ -2,3 +2,4 @@
 build
 dcf-test
 callgrind*
+dist

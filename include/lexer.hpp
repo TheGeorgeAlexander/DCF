@@ -6,8 +6,6 @@
 
 
 namespace dcf {
-    class Section;
-
     class parse_error : public std::exception {
     public:
         parse_error(const std::string &message)
@@ -185,4 +183,4 @@ namespace dcf::internal {
     }
 } // namespace dcf::internal
 
-#endif
+#endif // LEXER_HPP

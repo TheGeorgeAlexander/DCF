@@ -1,5 +1,3 @@
-// VERSION 0.0.1
-
 #ifndef DCF_HPP
 #define DCF_HPP
 

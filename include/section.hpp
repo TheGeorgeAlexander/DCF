@@ -269,4 +269,4 @@ inline std::string dcf::Section::toString(int indent, int depth) const {
     return output.str();
 }
 
-#endif
+#endif // SECTION_HPP
