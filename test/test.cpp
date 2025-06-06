@@ -5,7 +5,7 @@
 
 
 int main() {
-    std::ifstream fileStream("test/test.dcf");
+    std::ifstream fileStream("test/simple.dcf");
     if(!fileStream.is_open()) {
         throw std::runtime_error("Unable to open file");
     }
@@ -16,14 +16,11 @@ int main() {
     std::string fullFile = buffer.str();
     fileStream.close();
 
-    try {
-        dcf::DCF::parse(fullFile);
-    } catch(dcf::parse_error err) {
-        std::cout << "{\"message\":\"" << err.message() << "\",";
-        std::cout << "\"line\":" << err.line() << ",";
-        std::cout << "\"column\":" << err.column() << "}" << std::endl << std::endl;
 
-        std::cout << err.what() << std::endl;
-    }
+
+    dcf::Section config = dcf::DCF::parse(fullFile);
+    config.set("hey", config.get("hey").asDouble() * 30);
+    std::cout << config.toString() << std::endl;
+
     return 0;
 }

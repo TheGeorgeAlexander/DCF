@@ -1,0 +1,15 @@
+{
+    // header test
+    idk: "hi",
+
+    // bruh
+    test: false,
+    hey: 1.012e-05,
+
+    // idk
+    int: 123,
+
+
+    bool: true
+}
+
