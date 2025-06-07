@@ -1,52 +1,46 @@
 import re
-import os
+from pathlib import Path
 
 
-version = "0.0.1"
+VERSION = "0.0.1"
 
-include_dir = "include/"
-main_file = "dcf.hpp"
-out_file = "dist/dcf.hpp"
+INCLUDE_DIR = Path("include")
+MAIN_FILE = "dcf.hpp"
+OUT_FILE = Path("dist/dcf.hpp")
+
+
+
+def include(file, already_included):
+    comment_border = "/*---------------------------*/"
+    lines = ["\n", comment_border, f"//   begin of \"{file}\"",  comment_border]
+
+    with (INCLUDE_DIR / file).open("r") as f:
+        for line in f:
+            match = re.match(r'#include\s+"(.+?)"', line.strip())
+            if match:
+                included_file = match.group(1)
+                if included_file not in already_included:
+                    already_included.add(included_file)
+                    lines.append(include(included_file, already_included))
+            elif line.strip():
+                lines.append(line.strip("\n"))
+
+    lines.extend([comment_border, f"//   end of \"{file}\"", comment_border, ""])
+    return "\n".join(lines)
+
 
 
 
 def main():
-    final = include(main_file)
-    os.makedirs(os.path.dirname(out_file), exist_ok=True)
-    with open(out_file, "w+") as out:
-        out.write(f"""/*+++++++++++++++++++++++++++*/
-//   version {version}
+    final = include(MAIN_FILE, already_included={MAIN_FILE})
+    OUT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    OUT_FILE.write_text(f"""/*+++++++++++++++++++++++++++*/
+//   version {VERSION}
 /*+++++++++++++++++++++++++++*/
 
-""" + final)
-    print(f"Built {include_dir}{main_file} to {out_file} as version {version}")
-
-
-
-
-already_included = {main_file}
-def include(file):
-    final = f"""
-/*---------------------------*/
-//   begin of "{file}"
-/*---------------------------*/
-"""
-    for line in open(include_dir + file, "r"):
-        regex_match = re.match("#include \"(.+?)\"", line.strip())
-        if regex_match != None:
-            included_file = regex_match.group(1)
-            if included_file not in already_included:
-                already_included.add(included_file)
-                final += include(included_file)
-        elif line.strip() != "":
-            final += line
-            if final[-1] != "\n":
-                final += "\n"
-    return final + f"""/*---------------------------*/
-//   end of "{file}"
-/*---------------------------*/
-
-"""
+{final}
+""")
+    print(f"Built {INCLUDE_DIR / MAIN_FILE} to {OUT_FILE} as version {VERSION}")
 
 
 
