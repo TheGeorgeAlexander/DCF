@@ -13,22 +13,19 @@ static_assert(sizeof(double) == 8,
 
 
 namespace dcf {
+    dcf::Section parse(const std::string &text) {
+        std::vector<internal::Token> tokens;
+        tokenize(text, tokens);
 
-    class DCF {
-    public:
-        static dcf::Section parse(const std::string &text) {
-            std::vector<internal::Token> tokens;
-            tokenize(text, tokens);
-
-            if(tokens.size() == 0) {
-                throw parse_error("Expected content in input but got nothing");
-            }
-
-            tokens.emplace_back(internal::Token::Type::END_OF_INPUT, "", tokens.back().line, tokens.back().column + tokens.back().value.length());
-
-            return internal::Parser(tokens).parse();
+        if(tokens.size() == 0) {
+            throw parse_error("Expected content in input but got nothing");
         }
-    };
+
+        internal::Token lastToken = tokens.back();
+        tokens.emplace_back(internal::Token::Type::END_OF_INPUT, "", lastToken.line, lastToken.column + lastToken.value.length());
+
+        return internal::Parser(tokens).parse();
+    }
 } // namespace dcf
 
 #endif // DCF_HPP

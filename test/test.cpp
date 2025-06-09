@@ -4,8 +4,8 @@
 
 
 
-int main() {
-    std::ifstream fileStream("test/simple.dcf");
+void readFile(const std::string &file, std::string &content) {
+    std::ifstream fileStream(file);
     if(!fileStream.is_open()) {
         throw std::runtime_error("Unable to open file");
     }
@@ -13,13 +13,17 @@ int main() {
     // Read the full source file
     std::stringstream buffer;
     buffer << fileStream.rdbuf();
-    std::string fullFile = buffer.str();
+    content = buffer.str();
     fileStream.close();
+}
 
 
 
-    dcf::Section config = dcf::DCF::parse(fullFile);
-    config.set("hey", config.get("hey").asDouble() * 30);
+int main() {
+    std::string fullFile;
+    readFile("test/simple.dcf", fullFile);
+
+    dcf::Section config = dcf::parse(fullFile);
     std::cout << config.toString() << std::endl;
 
     return 0;
