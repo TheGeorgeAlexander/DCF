@@ -4,10 +4,10 @@
 #include "value.hpp"
 #include <optional>
 #include <unordered_map>
+#include <iomanip>
 
 
 namespace dcf {
-
     class Section {
     public:
         Section();
@@ -226,7 +226,7 @@ inline std::string dcf::Section::valueString(const dcf::Value &value, int indent
             return std::to_string(value.asInt());
         case dcf::ValueType::DOUBLE: {
             std::ostringstream sstream;
-            sstream << value.asDouble();
+            sstream << std::setprecision(15) << value.asDouble();
             return sstream.str();
         }
         case dcf::ValueType::ARRAY:
